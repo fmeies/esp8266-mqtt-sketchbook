@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Arduino IDE / build artefacts
+build/
+*.hex
+*.bin
+*.elf
+*.d
+*.o
+
+# IDE
+.idea/
+.vscode/
+.theia/
+
+# Third-party libraries are not version controlled, see README.
+# AllSketches is our own code and has to stay here so that the Arduino IDE
+# can resolve #include <AllSketches.h>.
+libraries/*
+!libraries/AllSketches/
+
+# Local credentials. Template: user_config_override_sample.h
+libraries/AllSketches/user_config_override.h
