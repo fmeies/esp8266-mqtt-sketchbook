@@ -17,6 +17,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # Makes arduino-cli treat the checkout as the sketchbook, so the libraries
+    # installed below land in ./libraries next to AllSketches, exactly as they
+    # do locally.
+    env:
+      ARDUINO_DIRECTORIES_USER: ${{ github.workspace }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -32,6 +38,20 @@ jobs:
         run: |
           arduino-cli core update-index --additional-urls "$ESP8266_INDEX"
           arduino-cli core install "$ESP8266_CORE" --additional-urls "$ESP8266_INDEX"
+
+      # Third-party libraries are not vendored, so CI has to fetch them. The
+      # versions are pinned to the ones listed in the README; the sketches are
+      # not tested against newer APIs.
+      - name: Install libraries
+        run: |
+          arduino-cli lib install \
+            "PubSubClient@2.8" \
+            "DallasTemperature@3.9.0" \
+            "OneWire@2.3.6" \
+            "DHT sensor library@1.4.3" \
+            "Adafruit BME280 Library@2.2.2" \
+            "Adafruit Unified Sensor@1.1.4" \
+            "Adafruit BusIO@1.8.3"
 
       # Real credentials never reach CI. The placeholders do not produce a
       # working connection, but compiling only needs them to be defined.
