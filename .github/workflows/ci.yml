@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # Pinned to the version used locally. Pinning matters here: this job exists to
+  # catch target toolchain problems, and a newer core would ship a newer GCC
+  # that accepts constructs the real one rejects.
+  ESP8266_CORE: esp8266:esp8266@2.4.2
+  ESP8266_INDEX: https://arduino.esp8266.com/stable/package_esp8266com_index.json
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: arduino/setup-arduino-cli@v2
+
+      - name: Cache Arduino core and toolchain
+        uses: actions/cache@v4
+        with:
+          path: ~/.arduino15
+          key: arduino15-${{ env.ESP8266_CORE }}
+
+      - name: Install ESP8266 core
+        run: |
+          arduino-cli core update-index --additional-urls "$ESP8266_INDEX"
+          arduino-cli core install "$ESP8266_CORE" --additional-urls "$ESP8266_INDEX"
+
+      # Real credentials never reach CI. The placeholders do not produce a
+      # working connection, but compiling only needs them to be defined.
+      - name: Create local configuration from the sample
+        run: |
+          cp libraries/AllSketches/user_config_override_sample.h \
+             libraries/AllSketches/user_config_override.h
+
+      - name: Configuration tests
+        run: ./tests/test_user_config.sh
+
+      - name: Compile all sketches
+        run: ./tests/compile_all.sh
